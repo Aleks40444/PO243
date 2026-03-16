@@ -22,7 +22,7 @@ button:hover { background: #731500; }
 </div>
 <script type="module">
 // Импортируем модули Firebase
-Import {initializeApp} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app-js";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app-js";
 import {getFirestore, collection, addDoc} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 // твои клюЧИ СО СКРИНШОТА
 const firebaseConfig = {
@@ -35,27 +35,28 @@ const firebaseConfig = {
   measurementId: "G-GZ9CJMJM31"
 };
 // Инициализация
-const app initializeApp(firebaseConfig);
-const db get Firestore (app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 // Логика кнопки
 document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
 e.preventDefault();
-const name Input document.getElementById("userName").value;
+const nameInput document.getElementById("userName").value;
 const emailInput document.getElementById("userEmail").value;
 try {
 // Запись в коллекцию "requests"
-await addDoc(collection(db, "requests"), {
-name: nameInput,
-email: emailInput,
+await addDoc(collection (db, "requests"), {
+name:
+nameInput,
+email:
+emailInput,
 timestamp: new Date()
-  });
+});
 alert("Готово! Данные сохранены в Firebase.");
 document.getElementById("feedbackForm").reset();
 } catch (error) {
-console.erroг ("Ошибка записи:", error);
+console.error("Ошибка записи:", еггог);
 alert("Ошибка при отправке.");
-}
 });
 </script>
 </body>
-</html
+</html>
