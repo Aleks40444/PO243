@@ -40,8 +40,8 @@ const db = getFirestore(app);
 // Логика кнопки
 document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
 e.preventDefault();
-const nameInput document.getElementById("userName").value;
-const emailInput document.getElementById("userEmail").value;
+const nameInput = document.getElementById("userName").value;
+const emailInput = document.getElementById("userEmail").value;
 try {
 // Запись в коллекцию "requests"
 await addDoc(collection (db, "requests"), {
