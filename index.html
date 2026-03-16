@@ -1,15 +1,49 @@
-HTML
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Облачная практика</title>
+<title>Мой облачный проект</title>
+<style>
+body { font-family: sans-serif; display: flex; justify-content: center; padding: 50px; background-color: #f4f4f9; }
+.form-container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px; }
+input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+button { width: 100%; padding: 10px; background: #f4b400; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 5px; }
+button:hover { background: #dfa400; }
+</style>
 </head>
 <body>
-<h1>Проект успешно запущен в облаке!</h1>
-<hr>
-<p>Работу выполнил студент: <strong>Шинкаренко Александра</strong></p>
-<p>Группа: <strong>ПО243</strong></p>
-<p>Тип облака: <strong>PaaS (GitHub Pages)</strong></p>
-</body>
-</html>
+<div class="form-container">
+<h3>Отправить заявку</h3>
+<form id="feedbackForm">
+<input type="text" id="userName" placeholder="Ваше имя" required>
+<input type="email" id="userEmail" placeholder="Baw Email" required>
+<button type="submit">Отправить в облако</button>
+</form>
+</div>
+<script type="module">
+// Импортируем модули Firebase
+Import { initializeApp) from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app-js";
+import (getFirestore, collection, addDoc) from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+// твои клюЧИ СО СКРИНШОТА
+const firebaseConfig = {
+  apiKey: "AIzaSyD_8QC9gvQadWPJeooOhUZf_YCtDBQ_rAM",
+  authDomain: "po243-1d556.firebaseapp.com",
+  projectId: "po243-1d556",
+  storageBucket: "po243-1d556.firebasestorage.app",
+  messagingSenderId: "497922929256",
+  appId: "1:497922929256:web:bf45df24e1a3feefaac1dd",
+  measurementId: "G-GZ9CJMJM31"
+};
+// Инициализация
+const app initializeApp(firebaseConfig);
+const db get Firestore (app);
+// Логика кнопки
+document.getElementById("feedbackForm").addEventListener("submit", async (e) > (
+e.preventDefault();
+const name Input document.getElementById("userName").value;
+const emailInput document.getElementById("userEmail").value;
+try (
+// Запись в коллекцию "requests"
+await addDoc(collection(db, "requests"), (
+name: nameInput,
+email: emailInput,
