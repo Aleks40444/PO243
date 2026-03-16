@@ -47,3 +47,29 @@ try (
 await addDoc(collection(db, "requests"), (
 name: nameInput,
 email: emailInput,
+  };
+// Инициализация
+const app initializeApp(firebaseConfig);
+const db getFirestore (app);
+// Логика кнопки
+document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
+e.preventDefault();
+const name Input document.getElementById("userName").value;
+const emailInput document.getElementById("userEmail").value;
+try {
+// Запись в коллекцию "requests"
+await addDoc(collection (db, "requests"), {
+});
+name: name Input,
+email: emailInput,
+timestamp: new Date()
+alert("Готово! Данные сохранены в Firebase.");
+document.getElementById("feedbackForm").reset();
+} catch (error) {
+console.erroг ("Ошибка записи:", error);
+alert("Ошибка при отправке.");
+}
+});
+</script>
+</body>
+</htm
