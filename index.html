@@ -64,7 +64,7 @@ btn.disabled - false;
 };
 // МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ
 const q = 1 query(collection (db, "requests"), orderBy("timestamp", "desc"));
-onSnapshot (q, (snapshot) > {
+onSnapshot (q, (snapshot) => {
 const feed document.getElementById('feed');
 feed. InnerHTML = "";
 snapshot.forEach((doc) => {
