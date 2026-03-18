@@ -70,10 +70,9 @@ document.getElementById('mainBtn').onclick = async () => {
     document.getElementById("name").value = "";
   } catch (e) {
     alert("Ошибка безопасности: Данные отклонены сервером.");
-    console.error(e);
-  }
   btn.disabled = false;
 };
+}
 
 // МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
