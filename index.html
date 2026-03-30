@@ -47,49 +47,42 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-// Функция ПОИСКА (№3)
+// --- ФУНКЦИЯ №3: ПОИСК ---
 document.getElementById("btn-search")?.addEventListener("click", async () => {
     const email = document.getElementById("search-email").value;
+    
+    // Создаем запрос к коллекции requests
     const q = query(collection(db, "requests"), where("email", "==", email));
     const querySnapshot = await getDocs(q);
     
     const feed = document.getElementById('feed');
-    feed.innerHTML = "<h3>Результаты поиска:</h3>"; // Очищаем и показываем только найденное
+    feed.innerHTML = "<h3>Результаты поиска:</h3>"; 
     
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        feed.innerHTML += `<div class="card">${data.name} <br> ${data.email}</div>`;
-      // Находим кнопку по тегу или ID и вешаем событие клика
-document.querySelector('button:last-of-type')?.addEventListener("click", async () => {
-    const searchEmail = document.querySelector('input[type="email"]:last-of-type').value;
-    
-    // Выполняем запрос в Firebase (Функция №3)
-    const q = query(collection(db, "requests"), where("email", "==", searchEmail));
-    const querySnapshot = await getDocs(q);
-    
-    const feed = document.getElementById('feed');
-    feed.innerHTML = "<h2>Результаты поиска:</h2>"; 
-
-    querySnapshot.forEach((doc) => {
-        const item = doc.data();
+    querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
         feed.innerHTML += `
             <div class="card">
-                <b>${item.name}</b><br>
-                ${item.email}
-                <button onclick="deleteRequestById('${doc.id}')" style="background:red; color:white; border:none; margin-top:10px; cursor:pointer;">Удалить запись</button>
+                <b>${data.name}</b><br>
+                ${data.email}
+                <br>
+                <button onclick="deleteRequestById('${docSnap.id}')" style="background:red; color:white; border:none; padding:5px; cursor:pointer;">
+                    Удалить запись
+                </button>
             </div>`;
     });
 });
-    });
-});
 
-// Функция УДАЛЕНИЯ (№5)
+// --- ФУНКЦИЯ №5: УДАЛЕНИЕ (вынеси её отдельно!) ---
 window.deleteRequestById = async (id) => {
-    if (confirm("Точно удалить запись?")) {
-        await deleteDoc(doc(db, "requests", id));
-        alert("Удалено! Страница обновится автоматически.");
-        // Если у тебя стоит onSnapshot, карточка исчезнет сама
+    if (confirm("Удалить этот документ?")) {
+        try {
+            await deleteDoc(doc(db, "requests", id));
+            alert("Удалено успешно!");
+            // Страница обновится сама, если работает onSnapshot
+        } catch (e) {
+            console.error(e);
+            alert("Ошибка при удалении. Проверьте Rules в Firebase.");
+        }
     }
 };
   
