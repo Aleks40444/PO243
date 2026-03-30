@@ -31,7 +31,8 @@ button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
-  serverTimestamp, updateDoc, doc, increment 
+  serverTimestamp, updateDoc, doc, increment,
+  getDocs, where, deleteDoc  // ← ДОБАВЛЕНЫ НЕДОСТАЮЩИЕ ФУНКЦИИ
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 // КОНФИГУРАЦИЯ FIREBASE
@@ -47,21 +48,31 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 // --- ФУНКЦИЯ №3: ПОИСК ---
 document.getElementById("btn-search")?.addEventListener("click", async () => {
     const email = document.getElementById("search-email").value;
     
-    // Создаем запрос к коллекции requests
+    if (!email) {
+        alert("Введите Email для поиска");
+        return;
+    }
+    
     const q = query(collection(db, "requests"), where("email", "==", email));
     const querySnapshot = await getDocs(q);
     
     const feed = document.getElementById('feed');
     feed.innerHTML = "<h3>Результаты поиска:</h3>"; 
     
+    if (querySnapshot.empty) {
+        feed.innerHTML += "<p>Ничего не найдено</p>";
+        return;
+    }
+    
     querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
         feed.innerHTML += `
-            <div class="card">
+            <div class="post">
                 <b>${data.name}</b><br>
                 ${data.email}
                 <br>
@@ -72,16 +83,15 @@ document.getElementById("btn-search")?.addEventListener("click", async () => {
     });
 });
 
-// --- ФУНКЦИЯ №5: УДАЛЕНИЕ (вынеси её отдельно!) ---
+// --- ФУНКЦИЯ №5: УДАЛЕНИЕ ---
 window.deleteRequestById = async (id) => {
     if (confirm("Удалить этот документ?")) {
         try {
             await deleteDoc(doc(db, "requests", id));
             alert("Удалено успешно!");
-            // Страница обновится сама, если работает onSnapshot
         } catch (e) {
             console.error(e);
-            alert("Ошибка при удалении. Проверьте Rules в Firebase.");
+            alert("Ошибка при удалении: " + e.message);
         }
     }
 };
@@ -99,21 +109,31 @@ window.processLike = async (id) => {
 // МЕТОД: ЗАПИСЬ С ВАЛИДАЦИЕЙ
 document.getElementById('mainBtn').onclick = async () => {
   const btn = document.getElementById('mainBtn');
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  
+  if (!name || !email) {
+      alert("Заполните все поля");
+      return;
+  }
+  
   btn.disabled = true;
   try {
-  // Внутри обработчика кнопки:
-await addDoc(collection(db, "requests"), { // Обязательно "requests"!
-    name: name,
-    email: email,
-    timestamp: serverTimestamp() // Используй это вместо Date().toISOString()
-});
+    await addDoc(collection(db, "requests"), {
+        name: name,
+        email: email,
+        likes: 0,
+        timestamp: serverTimestamp()
+    });
     document.getElementById("email").value = "";
     document.getElementById("name").value = "";
+    alert("Данные отправлены!");
   } catch (e) {
-    alert("Ошибка безопасности: Данные отклонены сервером.");
-  btn.disabled = false;
+    alert("Ошибка безопасности: " + e.message);
+  } finally {
+    btn.disabled = false;
+  }
 };
-}
 
 // МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
