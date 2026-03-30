@@ -101,12 +101,12 @@ document.getElementById('mainBtn').onclick = async () => {
   const btn = document.getElementById('mainBtn');
   btn.disabled = true;
   try {
-    await addDoc(collection(db, "requests"), {
-      name: document.getElementById('name').value,
-      email: document.getElementById("email").value,
-      likes: 0,
-      timestamp: serverTimestamp()
-    });
+  // Внутри обработчика кнопки:
+await addDoc(collection(db, "requests"), { // Обязательно "requests"!
+    name: name,
+    email: email,
+    timestamp: serverTimestamp() // Используй это вместо Date().toISOString()
+});
     document.getElementById("email").value = "";
     document.getElementById("name").value = "";
   } catch (e) {
