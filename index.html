@@ -21,7 +21,10 @@ button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px;
   <input type="email" id="email" placeholder="Рабочий Email">
   <button id="mainBtn">Опубликовать в облако</button>
 </div>
-
+<div style="margin: 10px; text-align: center;">
+    <input type="email" id="search-email" placeholder="Поиск по Email">
+    <button id="btn-search">Найти</button>
+</div>
 <div id="feed" style="width: 100%; max-width: 500px;"></div>
 
 <script type="module">
@@ -45,6 +48,30 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Функция ПОИСКА (№3)
+document.getElementById("btn-search")?.addEventListener("click", async () => {
+    const email = document.getElementById("search-email").value;
+    const q = query(collection(db, "requests"), where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    
+    const feed = document.getElementById('feed');
+    feed.innerHTML = "<h3>Результаты поиска:</h3>"; // Очищаем и показываем только найденное
+    
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        feed.innerHTML += `<div class="card">${data.name} <br> ${data.email}</div>`;
+    });
+});
+
+// Функция УДАЛЕНИЯ (№5)
+window.deleteRequestById = async (id) => {
+    if (confirm("Точно удалить запись?")) {
+        await deleteDoc(doc(db, "requests", id));
+        alert("Удалено! Страница обновится автоматически.");
+        // Если у тебя стоит onSnapshot, карточка исчезнет сама
+    }
+};
+  
 // МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
 window.processLike = async (id) => {
   const docRef = doc(db, "requests", id);
