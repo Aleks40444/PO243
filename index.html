@@ -4,38 +4,104 @@
 <meta charset="UTF-8">
 <title>BaaS</title>
 <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Inter', sans-serif; background: #1C1C1C; display: flex; flex-direction: column; align-items: center; padding: 20px; }
 .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); }
 input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; resize: vertical; }
 button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+button#mainBtn:hover { background: #333; }
+button#mainBtn:disabled { background: #999; cursor: not-allowed; }
 .post { background: #fff; border: 1px solid #eaeaea; padding: 25px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
-.like-btn { cursor: pointer; border: none; background: #900020; padding: 5px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; }
-.like-btn:hover { background: #e2e6ea; }
-.time {font-size: 11px; color: #999; float: right; }
+.post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.post-actions { display: flex; gap: 8px; }
+.icon-btn { cursor: pointer; border: none; background: none; font-size: 18px; padding: 5px; transition: 0.2s; }
+.icon-btn:hover { transform: scale(1.2); }
+.like-btn { cursor: pointer; border: none; background: #ffe0e0; padding: 8px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; color: #900020; font-weight: 600; }
+.like-btn:hover { background: #ffc0c0; }
+.time { font-size: 11px; color: #999; }
+.comments-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eaeaea; }
+.comment { background: #f5f5f5; padding: 10px; margin: 8px 0; border-radius: 6px; font-size: 13px; }
+.comment-author { font-weight: 600; color: #333; }
+.comment-text { margin: 5px 0; }
+.comment-time { font-size: 11px; color: #999; }
+.comment-form { margin-top: 10px; display: flex; gap: 5px; }
+.comment-form input { margin: 0; flex: 1; }
+.comment-form button { padding: 8px 12px; background: #1C1C1C; color: white; border: none; border-radius: 6px; cursor: pointer; width: auto; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+.modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.modal-header h2 { margin: 0; }
+.close-btn { font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; }
+.close-btn:hover { color: #000; }
+.modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+.modal-buttons button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-save { background: #1C1C1C; color: white; }
+.btn-save:hover { background: #333; }
+.btn-cancel { background: #ddd; color: #333; }
+.btn-cancel:hover { background: #ccc; }
+.search-section { margin: 10px; text-align: center; display: flex; gap: 5px; }
+.search-section input { flex: 1; }
+.search-section button { width: auto; padding: 12px 20px; background: #1C1C1C; color: white; border: none; border-radius: 6px; cursor: pointer; }
+#feed { width: 100%; max-width: 500px; }
+.badge { font-size: 11px; background: #f0f0f0; padding: 3px 8px; border-radius: 12px; color: #666; margin-left: 5px; }
 </style>
 </head>
 <body>
 <div class="container">
-  <h3>Панель управления данными</h3>
+  <h3>📱 Панель управления данными</h3>
   <input type="text" id="name" placeholder="Имя профиля">
   <input type="email" id="email" placeholder="Рабочий Email">
-  <button id="mainBtn">Опубликовать в облако</button>
+  <textarea id="content" placeholder="Что нового? (необязательно)" rows="3"></textarea>
+  <button id="mainBtn">🚀 Опубликовать в облако</button>
 </div>
-<div style="margin: 10px; text-align: center;">
+
+<div class="search-section">
     <input type="email" id="search-email" placeholder="Поиск по Email">
-    <button id="btn-search">Найти</button>
+    <button id="btn-search">🔍 Найти</button>
 </div>
-<div id="feed" style="width: 100%; max-width: 500px;"></div>
+
+<div id="feed"></div>
+
+<!-- Модал��ное окно редактирования -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>✏️ Редактировать запись</h2>
+      <span class="close-btn" onclick="closeEditModal()">&times;</span>
+    </div>
+    <input type="text" id="editName" placeholder="Имя профиля">
+    <input type="email" id="editEmail" placeholder="Email">
+    <textarea id="editContent" placeholder="Содержание" rows="3"></textarea>
+    <div class="modal-buttons">
+      <button class="btn-save" onclick="saveEdit()">💾 Сохранить</button>
+      <button class="btn-cancel" onclick="closeEditModal()">❌ Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно комментариев -->
+<div id="commentsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>💬 Комментарии</h2>
+      <span class="close-btn" onclick="closeCommentsModal()">&times;</span>
+    </div>
+    <div id="commentsList"></div>
+    <div class="comment-form">
+      <input type="text" id="commentInput" placeholder="Ваш комментарий...">
+      <button onclick="addComment()">📤 Отправить</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
-  serverTimestamp, updateDoc, doc, increment,
-  getDocs, where, deleteDoc  // ← ДОБАВЛЕНЫ НЕДОСТАЮЩИЕ ФУНКЦИИ
+  serverTimestamp, updateDoc, doc, increment, getDocs, where, deleteDoc  
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// КОНФИГУРАЦИЯ FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyD_8QC9gvQadWPJeooOhUZf_YCtDBQ_rAM",
   authDomain: "po243-1d556.firebaseapp.com",
@@ -49,7 +115,110 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- ФУНКЦИЯ №3: ПОИСК ---
+let currentEditingId = null;
+let currentCommentsPostId = null;
+
+// === РЕДАКТИРОВАНИЕ ===
+window.openEditModal = async (id) => {
+  const docSnap = await getDocs(query(collection(db, "requests"), where("__name__", "==", id)));
+  if (!docSnap.empty) {
+    const data = docSnap.docs[0].data();
+    document.getElementById('editName').value = data.name;
+    document.getElementById('editEmail').value = data.email;
+    document.getElementById('editContent').value = data.content || '';
+    currentEditingId = id;
+    document.getElementById('editModal').style.display = 'block';
+  }
+};
+
+window.closeEditModal = () => {
+  document.getElementById('editModal').style.display = 'none';
+  currentEditingId = null;
+};
+
+window.saveEdit = async () => {
+  const newName = document.getElementById('editName').value;
+  const newEmail = document.getElementById('editEmail').value;
+  const newContent = document.getElementById('editContent').value;
+  
+  if (!newName || !newEmail) {
+    alert('Заполните имя и email');
+    return;
+  }
+  
+  try {
+    await updateDoc(doc(db, "requests", currentEditingId), {
+      name: newName,
+      email: newEmail,
+      content: newContent,
+      edited: serverTimestamp()
+    });
+    closeEditModal();
+    alert('✅ Запись обновлена!');
+  } catch (e) {
+    alert('❌ Ошибка: ' + e.message);
+  }
+};
+
+// === КОММЕНТАРИИ ===
+window.openCommentsModal = (postId) => {
+  currentCommentsPostId = postId;
+  document.getElementById('commentsModal').style.display = 'block';
+  loadComments(postId);
+};
+
+window.closeCommentsModal = () => {
+  document.getElementById('commentsModal').style.display = 'none';
+  currentCommentsPostId = null;
+};
+
+const loadComments = async (postId) => {
+  const commentsRef = collection(db, "requests", postId, "comments");
+  const q = query(commentsRef, orderBy("timestamp", "asc"));
+  
+  onSnapshot(q, (snapshot) => {
+    const commentsList = document.getElementById('commentsList');
+    commentsList.innerHTML = '';
+    
+    if (snapshot.empty) {
+      commentsList.innerHTML = '<p style="text-align: center; color: #999;">Комментариев нет</p>';
+      return;
+    }
+    
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      commentsList.innerHTML += `
+        <div class="comment">
+          <div class="comment-author">${data.author}</div>
+          <div class="comment-text">${data.text}</div>
+          <div class="comment-time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</div>
+        </div>
+      `;
+    });
+  });
+};
+
+window.addComment = async () => {
+  const text = document.getElementById('commentInput').value;
+  
+  if (!text.trim()) {
+    alert('Введите комментарий');
+    return;
+  }
+  
+  try {
+    await addDoc(collection(db, "requests", currentCommentsPostId, "comments"), {
+      author: document.getElementById('name').value || 'Аноним',
+      text: text,
+      timestamp: serverTimestamp()
+    });
+    document.getElementById('commentInput').value = '';
+  } catch (e) {
+    alert('❌ Ошибка: ' + e.message);
+  }
+};
+
+// === ПОИСК ===
 document.getElementById("btn-search")?.addEventListener("click", async () => {
     const email = document.getElementById("search-email").value;
     
@@ -62,7 +231,7 @@ document.getElementById("btn-search")?.addEventListener("click", async () => {
     const querySnapshot = await getDocs(q);
     
     const feed = document.getElementById('feed');
-    feed.innerHTML = "<h3>Результаты поиска:</h3>"; 
+    feed.innerHTML = "<h3>🔍 Результаты поиска:</h3>"; 
     
     if (querySnapshot.empty) {
         feed.innerHTML += "<p>Ничего не найдено</p>";
@@ -73,47 +242,50 @@ document.getElementById("btn-search")?.addEventListener("click", async () => {
         const data = docSnap.data();
         feed.innerHTML += `
             <div class="post">
-                <b>${data.name}</b><br>
-                ${data.email}
-                <br>
-                <button onclick="deleteRequestById('${docSnap.id}')" style="background:red; color:white; border:none; padding:5px; cursor:pointer;">
-                    Удалить запись
-                </button>
+                <div class="post-header">
+                    <div><b>${data.name}</b><br><small>${data.email}</small></div>
+                    <div class="post-actions">
+                        <button class="icon-btn" onclick="openEditModal('${docSnap.id}')" title="Редактировать">✏️</button>
+                        <button class="icon-btn" onclick="deleteRequestById('${docSnap.id}')" title="Удалить" style="color: red;">🗑️</button>
+                    </div>
+                </div>
+                ${data.content ? `<p style="margin: 10px 0;">${data.content}</p>` : ''}
             </div>`;
     });
 });
 
-// --- ФУНКЦИЯ №5: УДАЛЕНИЕ ---
+// === УДАЛЕНИЕ ===
 window.deleteRequestById = async (id) => {
     if (confirm("Удалить этот документ?")) {
         try {
             await deleteDoc(doc(db, "requests", id));
-            alert("Удалено успешно!");
+            alert("✅ Удалено успешно!");
         } catch (e) {
             console.error(e);
-            alert("Ошибка при удалении: " + e.message);
+            alert("❌ Ошибка при удалении: " + e.message);
         }
     }
 };
-  
-// МЕТОД: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
+
+// === ЛАЙКИ ===
 window.processLike = async (id) => {
   const docRef = doc(db, "requests", id);
   try {
     await updateDoc(docRef, { likes: increment(1) });
   } catch (e) {
-    console.error("Validation Error:", e.message);
+    console.error("Error:", e.message);
   }
 };
 
-// МЕТОД: ЗАПИСЬ С ВАЛИДАЦИЕЙ
+// === СОЗДАНИЕ ПОСТА ===
 document.getElementById('mainBtn').onclick = async () => {
   const btn = document.getElementById('mainBtn');
   const name = document.getElementById('name').value;
   const email = document.getElementById('email').value;
+  const content = document.getElementById('content').value;
   
   if (!name || !email) {
-      alert("Заполните все поля");
+      alert("Заполните имя и email");
       return;
   }
   
@@ -122,36 +294,62 @@ document.getElementById('mainBtn').onclick = async () => {
     await addDoc(collection(db, "requests"), {
         name: name,
         email: email,
+        content: content,
         likes: 0,
         timestamp: serverTimestamp()
     });
     document.getElementById("email").value = "";
     document.getElementById("name").value = "";
-    alert("Данные отправлены!");
+    document.getElementById("content").value = "";
+    alert("✅ Данные отправлены!");
   } catch (e) {
-    alert("Ошибка безопасности: " + e.message);
+    alert("❌ Ошибка: " + e.message);
   } finally {
     btn.disabled = false;
   }
 };
 
-// МЕТОД: REAL-TIME СИНХРОНИЗАЦИЯ
+// === REAL-TIME СИНХРОНИЗАЦИЯ ===
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
   const feed = document.getElementById('feed');
   feed.innerHTML = "";
   snapshot.forEach((doc) => {
     const data = doc.data();
+    const editedBadge = data.edited ? ' <span class="badge">отредактировано</span>' : '';
+    
     feed.innerHTML += `
       <div class="post">
-        <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
-        <b>${data.name}</b>
-        <p style="margin: 5px 0;">${data.email}</p>
-        <button class="like-btn" onclick="processLike('${doc.id}')">${data.likes || 0}</button>
+        <div class="post-header">
+          <div>
+            <div><b>${data.name}</b>${editedBadge}</div>
+            <small style="color: #999;">${data.email}</small><br>
+            <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+          </div>
+          <div class="post-actions">
+            <button class="icon-btn" onclick="openEditModal('${doc.id}')" title="Редактировать">✏️</button>
+            <button class="icon-btn" onclick="openCommentsModal('${doc.id}')" title="Комментарии">💬</button>
+            <button class="icon-btn" onclick="deleteRequestById('${doc.id}')" title="Удалить" style="color: red;">🗑️</button>
+          </div>
+        </div>
+        ${data.content ? `<p style="margin: 10px 0;">${data.content}</p>` : ''}
+        <button class="like-btn" onclick="processLike('${doc.id}')">❤️ ${data.likes || 0}</button>
       </div>
     `;
   });
 });
+
+// Закрытие модалей при клике вне окна
+window.onclick = function(event) {
+  const editModal = document.getElementById('editModal');
+  const commentsModal = document.getElementById('commentsModal');
+  if (event.target === editModal) {
+    editModal.style.display = 'none';
+  }
+  if (event.target === commentsModal) {
+    commentsModal.style.display = 'none';
+  }
+};
 </script>
 </body>
 </html>
