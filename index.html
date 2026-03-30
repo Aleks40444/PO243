@@ -60,6 +60,27 @@ document.getElementById("btn-search")?.addEventListener("click", async () => {
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         feed.innerHTML += `<div class="card">${data.name} <br> ${data.email}</div>`;
+      // Находим кнопку по тегу или ID и вешаем событие клика
+document.querySelector('button:last-of-type')?.addEventListener("click", async () => {
+    const searchEmail = document.querySelector('input[type="email"]:last-of-type').value;
+    
+    // Выполняем запрос в Firebase (Функция №3)
+    const q = query(collection(db, "requests"), where("email", "==", searchEmail));
+    const querySnapshot = await getDocs(q);
+    
+    const feed = document.getElementById('feed');
+    feed.innerHTML = "<h2>Результаты поиска:</h2>"; 
+
+    querySnapshot.forEach((doc) => {
+        const item = doc.data();
+        feed.innerHTML += `
+            <div class="card">
+                <b>${item.name}</b><br>
+                ${item.email}
+                <button onclick="deleteRequestById('${doc.id}')" style="background:red; color:white; border:none; margin-top:10px; cursor:pointer;">Удалить запись</button>
+            </div>`;
+    });
+});
     });
 });
 
