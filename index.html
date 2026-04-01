@@ -2,55 +2,73 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>ЧТО? - Personalization</title>
+<title>ЧТО? - Personalized Cloud</title>
 <style>
-/* Твои оригинальные стили */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', sans-serif; background: #1C1C1C; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-.container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #1C1C1C; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    
+    /* Стили авторизации */
+    .auth-container { width: 100%; max-width: 500px; margin-bottom: 20px; }
+    #loginBtn { background: #4285F4; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; }
+    .user-bar { background: white; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #1C1C1C; }
+    .logout-btn { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
 
-/* Стили для блока авторизации  */
-.auth-bar { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; max-width: 500px; }
-.user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #007bff; }
-.logout-btn { background: #ff4757; padding: 8px 15px; width: auto; font-size: 14px; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    /* Стили контента */
+    .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); }
+    input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    button#mainBtn:disabled { background: #999; }
 
-input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-button#mainBtn, #loginBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
-#loginBtn { background: #4285F4; margin-bottom: 20px; } /* Google Blue */
-button:hover { opacity: 0.8; }
+    .post { background: #fff; border: 1px solid #eaeaea; padding: 25px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
+    .post-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .author-info { display: flex; align-items: center; gap: 10px; }
+    .post-actions { display: flex; gap: 8px; }
+    .icon-btn { cursor: pointer; border: none; background: none; font-size: 18px; padding: 5px; }
+    .like-btn { cursor: pointer; border: none; background: #ffe0e0; padding: 8px 12px; border-radius: 20px; font-size: 14px; color: #900020; font-weight: 600; }
+    .time { font-size: 11px; color: #999; }
+    .badge { font-size: 11px; background: #f0f0f0; padding: 3px 8px; border-radius: 12px; color: #666; margin-left: 5px; }
 
-/* Остальные стили постов и модалок сохранены... */
-.post { background: #fff; border: 1px solid #eaeaea; padding: 25px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
-.post-header { display: flex; justify-content: space-between; align-items: center; }
-.like-btn { cursor: pointer; border: none; background: #ffe0e0; padding: 8px 12px; border-radius: 20px; color: #900020; font-weight: 600; }
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-.modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
-.badge { font-size: 11px; background: #f0f0f0; padding: 3px 8px; border-radius: 12px; color: #666; margin-left: 5px; }
+    /* Модалки */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+    .modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
 </style>
 </head>
 <body>
 
-<div id="authSection" style="width: 100%; max-width: 500px; text-align: center;">
-    <button id="loginBtn">Войти через Google</button>
-    
-    <div id="userInfo" style="display: none;" class="auth-bar">
+<div class="auth-container">
+    <button id="loginBtn">🔑 Войти через Google</button>
+    <div id="userInfo" class="user-bar" style="display: none;">
         <img id="userPhoto" class="user-avatar" src="" alt="Avatar">
-        <span id="userName" style="font-weight: bold; flex-grow: 1; text-align: left;"></span>
-        <button id="logoutBtn" class="logout-btn">Выйти</button>
+        <div style="flex-grow: 1;">
+            <div id="userName" style="font-weight: 600; font-size: 14px;"></div>
+            <button id="logoutBtn" class="logout-btn">Выйти</button>
+        </div>
     </div>
 </div>
 
-<div class="container" id="messageForm" style="display: none;">
-  <h3>📱 Панель управления</h3>
-  <input type="text" id="name" placeholder="Имя профиля" readonly>
-  <input type="email" id="email" placeholder="Рабочий Email" readonly>
+<div class="container" id="editorSection" style="display: none;">
+  <h3>📱 Новая запись</h3>
+  <input type="text" id="name" placeholder="Имя" readonly>
+  <input type="email" id="email" placeholder="Email" readonly>
   <textarea id="content" placeholder="Что нового?" rows="3"></textarea>
-  <button id="mainBtn">🚀 Опубликовать в облако</button>
+  <button id="mainBtn">🚀 Опубликовать</button>
 </div>
 
 <div id="feed"></div>
 
-<div id="editModal" class="modal">...</div>
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h2>✏️ Редактировать</h2>
+    <input type="text" id="editName" readonly>
+    <input type="email" id="editEmail" readonly>
+    <textarea id="editContent" rows="3"></textarea>
+    <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="saveEdit()" style="flex:1; padding:10px; background:#1C1C1C; color:white; border-radius:6px; border:none;">Сохранить</button>
+        <button onclick="closeEditModal()" style="flex:1; padding:10px; background:#ddd; border-radius:6px; border:none;">Отмена</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
@@ -58,8 +76,6 @@ import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
   serverTimestamp, updateDoc, doc, increment, getDocs, where, deleteDoc  
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
-// Импорт Auth 
 import { 
   getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
@@ -75,349 +91,137 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); [cite: 16]
-const provider = new GoogleAuthProvider(); [cite: 16]
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-// Элементы интерфейса
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const userInfo = document.getElementById('userInfo');
-const messageForm = document.getElementById('messageForm');
+let currentEditingId = null;
 
-// --- ЛОГИКА АВТОРИЗАЦИИ  ---
-loginBtn.onclick = () => signInWithPopup(auth, provider);
-logoutBtn.onclick = () => signOut(auth);
+// === АВТОРИЗАЦИЯ ===
+document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
+document.getElementById('logoutBtn').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
+  const loginBtn = document.getElementById('loginBtn');
+  const userInfo = document.getElementById('userInfo');
+  const editorSection = document.getElementById('editorSection');
+
   if (user) {
-    // Пользователь вошел
     loginBtn.style.display = 'none';
     userInfo.style.display = 'flex';
-    messageForm.style.display = 'block';
+    editorSection.style.display = 'block';
     
-    // Предзаполнение полей 
     document.getElementById('userName').innerText = user.displayName;
     document.getElementById('userPhoto').src = user.photoURL;
     document.getElementById('name').value = user.displayName;
     document.getElementById('email').value = user.email;
   } else {
-    // Пользователь вышел
     loginBtn.style.display = 'block';
     userInfo.style.display = 'none';
-    messageForm.style.display = 'none';
+    editorSection.style.display = 'none';
   }
 });
 
-// --- ОСТАЛЬНАЯ ЛОГИКА (UpdateDoc, addDoc) ---
-// Обновленный метод создания поста с использованием данных auth 
+// === СОЗДАНИЕ ПОСТА ===
 document.getElementById('mainBtn').onclick = async () => {
   const content = document.getElementById('content').value;
-  if (!content) return alert("Введите текст!");
+  if (!content.trim()) return alert("Напишите что-нибудь!");
+
+  const btn = document.getElementById('mainBtn');
+  btn.disabled = true;
 
   try {
     await addDoc(collection(db, "requests"), {
         name: auth.currentUser.displayName,
         email: auth.currentUser.email,
         photo: auth.currentUser.photoURL,
-        text: content,
-        likes: 0,
-        timestamp: serverTimestamp()
-    });
-    document.getElementById("content").value = "";
-    alert("✅ Опубликовано!");
-  } catch (e) {
-    alert("❌ Ошибка доступа! Проверьте Rules в Firebase."); [cite: 21]
-  }
-};
-
-<!-- Модал��ное окно редактирования -->
-<div id="editModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>✏️ Редактировать запись</h2>
-      <span class="close-btn" onclick="closeEditModal()">&times;</span>
-    </div>
-    <input type="text" id="editName" placeholder="Имя профиля">
-    <input type="email" id="editEmail" placeholder="Email">
-    <textarea id="editContent" placeholder="Содержание" rows="3"></textarea>
-    <div class="modal-buttons">
-      <button class="btn-save" onclick="saveEdit()">💾 Сохранить</button>
-      <button class="btn-cancel" onclick="closeEditModal()">❌ Отмена</button>
-    </div>
-  </div>
-</div>
-
-<!-- Модальное окно комментариев -->
-<div id="commentsModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>💬 Комментарии</h2>
-      <span class="close-btn" onclick="closeCommentsModal()">&times;</span>
-    </div>
-    <div id="commentsList"></div>
-    <div class="comment-form">
-      <input type="text" id="commentInput" placeholder="Ваш комментарий...">
-      <button onclick="addComment()">📤 Отправить</button>
-    </div>
-  </div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { 
-  getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
-  serverTimestamp, updateDoc, doc, increment, getDocs, where, deleteDoc  
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD_8QC9gvQadWPJeooOhUZf_YCtDBQ_rAM",
-  authDomain: "po243-1d556.firebaseapp.com",
-  projectId: "po243-1d556",
-  storageBucket: "po243-1d556.firebasestorage.app",
-  messagingSenderId: "497922929256",
-  appId: "1:497922929256:web:bf45df24e1a3feefaac1dd",
-  measurementId: "G-GZ9CJMJM31"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let currentEditingId = null;
-let currentCommentsPostId = null;
-
-// === РЕДАКТИРОВАНИЕ ===
-window.openEditModal = async (id) => {
-  const docSnap = await getDocs(query(collection(db, "requests"), where("__name__", "==", id)));
-  if (!docSnap.empty) {
-    const data = docSnap.docs[0].data();
-    document.getElementById('editName').value = data.name;
-    document.getElementById('editEmail').value = data.email;
-    document.getElementById('editContent').value = data.content || '';
-    currentEditingId = id;
-    document.getElementById('editModal').style.display = 'block';
-  }
-};
-
-window.closeEditModal = () => {
-  document.getElementById('editModal').style.display = 'none';
-  currentEditingId = null;
-};
-
-window.saveEdit = async () => {
-  const newName = document.getElementById('editName').value;
-  const newEmail = document.getElementById('editEmail').value;
-  const newContent = document.getElementById('editContent').value;
-  
-  if (!newName || !newEmail) {
-    alert('Заполните имя и email');
-    return;
-  }
-  
-  try {
-    await updateDoc(doc(db, "requests", currentEditingId), {
-      name: newName,
-      email: newEmail,
-      content: newContent,
-      edited: serverTimestamp()
-    });
-    closeEditModal();
-    alert('✅ Запись обновлена!');
-  } catch (e) {
-    alert('❌ Ошибка: ' + e.message);
-  }
-};
-
-// === КОММЕНТАРИИ ===
-window.openCommentsModal = (postId) => {
-  currentCommentsPostId = postId;
-  document.getElementById('commentsModal').style.display = 'block';
-  loadComments(postId);
-};
-
-window.closeCommentsModal = () => {
-  document.getElementById('commentsModal').style.display = 'none';
-  currentCommentsPostId = null;
-};
-
-const loadComments = async (postId) => {
-  const commentsRef = collection(db, "requests", postId, "comments");
-  const q = query(commentsRef, orderBy("timestamp", "asc"));
-  
-  onSnapshot(q, (snapshot) => {
-    const commentsList = document.getElementById('commentsList');
-    commentsList.innerHTML = '';
-    
-    if (snapshot.empty) {
-      commentsList.innerHTML = '<p style="text-align: center; color: #999;">Комментариев нет</p>';
-      return;
-    }
-    
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      commentsList.innerHTML += `
-        <div class="comment">
-          <div class="comment-author">${data.author}</div>
-          <div class="comment-text">${data.text}</div>
-          <div class="comment-time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</div>
-        </div>
-      `;
-    });
-  });
-};
-
-window.addComment = async () => {
-  const text = document.getElementById('commentInput').value;
-  
-  if (!text.trim()) {
-    alert('Введите комментарий');
-    return;
-  }
-  
-  try {
-    await addDoc(collection(db, "requests", currentCommentsPostId, "comments"), {
-      author: document.getElementById('name').value || 'Аноним',
-      text: text,
-      timestamp: serverTimestamp()
-    });
-    document.getElementById('commentInput').value = '';
-  } catch (e) {
-    alert('❌ Ошибка: ' + e.message);
-  }
-};
-
-// === ПОИСК ===
-document.getElementById("btn-search")?.addEventListener("click", async () => {
-    const email = document.getElementById("search-email").value;
-    
-    if (!email) {
-        alert("Введите Email для поиска");
-        return;
-    }
-    
-    const q = query(collection(db, "requests"), where("email", "==", email));
-    const querySnapshot = await getDocs(q);
-    
-    const feed = document.getElementById('feed');
-    feed.innerHTML = "<h3>🔍 Результаты поиска:</h3>"; 
-    
-    if (querySnapshot.empty) {
-        feed.innerHTML += "<p>Ничего не найдено</p>";
-        return;
-    }
-    
-    querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        feed.innerHTML += `
-            <div class="post">
-                <div class="post-header">
-                    <div><b>${data.name}</b><br><small>${data.email}</small></div>
-                    <div class="post-actions">
-                        <button class="icon-btn" onclick="openEditModal('${docSnap.id}')" title="Редактировать">✏️</button>
-                        <button class="icon-btn" onclick="deleteRequestById('${docSnap.id}')" title="Удалить" style="color: red;">🗑️</button>
-                    </div>
-                </div>
-                ${data.content ? `<p style="margin: 10px 0;">${data.content}</p>` : ''}
-            </div>`;
-    });
-});
-
-// === УДАЛЕНИЕ ===
-window.deleteRequestById = async (id) => {
-    if (confirm("Удалить этот документ?")) {
-        try {
-            await deleteDoc(doc(db, "requests", id));
-            alert("✅ Удалено успешно!");
-        } catch (e) {
-            console.error(e);
-            alert("❌ Ошибка при удалении: " + e.message);
-        }
-    }
-};
-
-// === ЛАЙКИ ===
-window.processLike = async (id) => {
-  const docRef = doc(db, "requests", id);
-  try {
-    await updateDoc(docRef, { likes: increment(1) });
-  } catch (e) {
-    console.error("Error:", e.message);
-  }
-};
-
-// === СОЗДАНИЕ ПОСТА ===
-document.getElementById('mainBtn').onclick = async () => {
-  const btn = document.getElementById('mainBtn');
-  const name = document.getElementById('name').value;
-  const email = document.getElementById('email').value;
-  const content = document.getElementById('content').value;
-  
-  if (!name || !email) {
-      alert("Заполните имя и email");
-      return;
-  }
-  
-  btn.disabled = true;
-  try {
-    await addDoc(collection(db, "requests"), {
-        name: name,
-        email: email,
         content: content,
         likes: 0,
         timestamp: serverTimestamp()
     });
-    document.getElementById("email").value = "";
-    document.getElementById("name").value = "";
     document.getElementById("content").value = "";
-    alert("✅ Данные отправлены!");
+    alert("✅ Готово!");
   } catch (e) {
-    alert("❌ Ошибка: " + e.message);
+    alert("Ошибка: " + e.message);
   } finally {
     btn.disabled = false;
   }
 };
 
-// === REAL-TIME СИНХРОНИЗАЦИЯ ===
+// === ПОЛУЧЕНИЕ ДАННЫХ (REAL-TIME) ===
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
   const feed = document.getElementById('feed');
   feed.innerHTML = "";
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    const editedBadge = data.edited ? ' <span class="badge">отредактировано</span>' : '';
-    
+  
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const isOwner = auth.currentUser && auth.currentUser.email === data.email;
+    const editedBadge = data.edited ? ' <span class="badge">ред.</span>' : '';
+
     feed.innerHTML += `
       <div class="post">
         <div class="post-header">
-          <div>
-            <div><b>${data.name}</b>${editedBadge}</div>
-            <small style="color: #999;">${data.email}</small><br>
-            <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+          <div class="author-info">
+            <img src="${data.photo || 'https://via.placeholder.com/40'}" class="user-avatar" style="width:30px; height:30px;">
+            <div>
+                <div><b>${data.name}</b>${editedBadge}</div>
+                <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+            </div>
           </div>
           <div class="post-actions">
-            <button class="icon-btn" onclick="openEditModal('${doc.id}')" title="Редактировать">✏️</button>
-            <button class="icon-btn" onclick="openCommentsModal('${doc.id}')" title="Комментарии">💬</button>
-            <button class="icon-btn" onclick="deleteRequestById('${doc.id}')" title="Удалить" style="color: red;">🗑️</button>
+            ${isOwner ? `
+                <button class="icon-btn" onclick="openEditModal('${docSnap.id}')">✏️</button>
+                <button class="icon-btn" onclick="deleteRequestById('${docSnap.id}')" style="color:red;">🗑️</button>
+            ` : ''}
           </div>
         </div>
-        ${data.content ? `<p style="margin: 10px 0;">${data.content}</p>` : ''}
-        <button class="like-btn" onclick="processLike('${doc.id}')">❤️ ${data.likes || 0}</button>
+        <p style="margin: 15px 0; line-height: 1.5;">${data.content}</p>
+        <button class="like-btn" onclick="processLike('${docSnap.id}')">❤️ ${data.likes || 0}</button>
       </div>
     `;
   });
 });
 
-// Закрытие модалей при клике вне окна
-window.onclick = function(event) {
-  const editModal = document.getElementById('editModal');
-  const commentsModal = document.getElementById('commentsModal');
-  if (event.target === editModal) {
-    editModal.style.display = 'none';
-  }
-  if (event.target === commentsModal) {
-    commentsModal.style.display = 'none';
+// === ФУНКЦИИ УПРАВЛЕНИЯ ===
+window.processLike = async (id) => {
+  if(!auth.currentUser) return alert("Войдите, чтобы ставить лайки!");
+  await updateDoc(doc(db, "requests", id), { likes: increment(1) });
+};
+
+window.deleteRequestById = async (id) => {
+  if (confirm("Удалить этот пост?")) {
+    await deleteDoc(doc(db, "requests", id));
   }
 };
 
+window.openEditModal = async (id) => {
+  const docSnap = await getDocs(query(collection(db, "requests"), where("__name__", "==", id)));
+  if (!docSnap.empty) {
+    const data = docSnap.docs[0].data();
+    document.getElementById('editContent').value = data.content;
+    document.getElementById('editName').value = data.name;
+    document.getElementById('editEmail').value = data.email;
+    currentEditingId = id;
+    document.getElementById('editModal').style.display = 'block';
+  }
+};
+
+window.saveEdit = async () => {
+  const newContent = document.getElementById('editContent').value;
+  await updateDoc(doc(db, "requests", currentEditingId), {
+    content: newContent,
+    edited: serverTimestamp()
+  });
+  closeEditModal();
+};
+
+window.closeEditModal = () => {
+  document.getElementById('editModal').style.display = 'none';
+};
+
+window.onclick = (event) => {
+  if (event.target == document.getElementById('editModal')) closeEditModal();
+};
 </script>
 </body>
 </html>
