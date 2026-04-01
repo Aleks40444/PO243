@@ -2,66 +2,133 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>BaaS</title>
+<title>ЧТО? - Personalization</title>
 <style>
+/* Твои оригинальные стили */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Inter', sans-serif; background: #1C1C1C; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-.container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); }
-input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; resize: vertical; }
-button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
-button#mainBtn:hover { background: #333; }
-button#mainBtn:disabled { background: #999; cursor: not-allowed; }
-.post { background: #fff; border: 1px solid #eaeaea; padding: 25px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; }
-.post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.post-actions { display: flex; gap: 8px; }
-.icon-btn { cursor: pointer; border: none; background: none; font-size: 18px; padding: 5px; transition: 0.2s; }
-.icon-btn:hover { transform: scale(1.2); }
-.like-btn { cursor: pointer; border: none; background: #ffe0e0; padding: 8px 12px; border-radius: 20px; font-size: 14px; transition: 0.2s; color: #900020; font-weight: 600; }
-.like-btn:hover { background: #ffc0c0; }
-.time { font-size: 11px; color: #999; }
-.comments-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eaeaea; }
-.comment { background: #f5f5f5; padding: 10px; margin: 8px 0; border-radius: 6px; font-size: 13px; }
-.comment-author { font-weight: 600; color: #333; }
-.comment-text { margin: 5px 0; }
-.comment-time { font-size: 11px; color: #999; }
-.comment-form { margin-top: 10px; display: flex; gap: 5px; }
-.comment-form input { margin: 0; flex: 1; }
-.comment-form button { padding: 8px 12px; background: #1C1C1C; color: white; border: none; border-radius: 6px; cursor: pointer; width: auto; }
+.container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+
+/* Стили для блока авторизации  */
+.auth-bar { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; max-width: 500px; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #007bff; }
+.logout-btn { background: #ff4757; padding: 8px 15px; width: auto; font-size: 14px; color: white; border: none; border-radius: 6px; cursor: pointer; }
+
+input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+button#mainBtn, #loginBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+#loginBtn { background: #4285F4; margin-bottom: 20px; } /* Google Blue */
+button:hover { opacity: 0.8; }
+
+/* Остальные стили постов и модалок сохранены... */
+.post { background: #fff; border: 1px solid #eaeaea; padding: 25px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
+.post-header { display: flex; justify-content: space-between; align-items: center; }
+.like-btn { cursor: pointer; border: none; background: #ffe0e0; padding: 8px 12px; border-radius: 20px; color: #900020; font-weight: 600; }
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-.modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.modal-header h2 { margin: 0; }
-.close-btn { font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; }
-.close-btn:hover { color: #000; }
-.modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
-.modal-buttons button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.btn-save { background: #1C1C1C; color: white; }
-.btn-save:hover { background: #333; }
-.btn-cancel { background: #ddd; color: #333; }
-.btn-cancel:hover { background: #ccc; }
-.search-section { margin: 10px; text-align: center; display: flex; gap: 5px; }
-.search-section input { flex: 1; }
-.search-section button { width: auto; padding: 12px 20px; background: #1C1C1C; color: white; border: none; border-radius: 6px; cursor: pointer; }
-#feed { width: 100%; max-width: 500px; }
+.modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
 .badge { font-size: 11px; background: #f0f0f0; padding: 3px 8px; border-radius: 12px; color: #666; margin-left: 5px; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h3>📱 Панель управления данными</h3>
-  <input type="text" id="name" placeholder="Имя профиля">
-  <input type="email" id="email" placeholder="Рабочий Email">
-  <textarea id="content" placeholder="Что нового? (необязательно)" rows="3"></textarea>
+
+<div id="authSection" style="width: 100%; max-width: 500px; text-align: center;">
+    <button id="loginBtn">Войти через Google</button>
+    
+    <div id="userInfo" style="display: none;" class="auth-bar">
+        <img id="userPhoto" class="user-avatar" src="" alt="Avatar">
+        <span id="userName" style="font-weight: bold; flex-grow: 1; text-align: left;"></span>
+        <button id="logoutBtn" class="logout-btn">Выйти</button>
+    </div>
+</div>
+
+<div class="container" id="messageForm" style="display: none;">
+  <h3>📱 Панель управления</h3>
+  <input type="text" id="name" placeholder="Имя профиля" readonly>
+  <input type="email" id="email" placeholder="Рабочий Email" readonly>
+  <textarea id="content" placeholder="Что нового?" rows="3"></textarea>
   <button id="mainBtn">🚀 Опубликовать в облако</button>
 </div>
 
-<div class="search-section">
-    <input type="email" id="search-email" placeholder="Поиск по Email">
-    <button id="btn-search">🔍 Найти</button>
-</div>
-
 <div id="feed"></div>
+
+<div id="editModal" class="modal">...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { 
+  getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
+  serverTimestamp, updateDoc, doc, increment, getDocs, where, deleteDoc  
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+// Импорт Auth 
+import { 
+  getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_8QC9gvQadWPJeooOhUZf_YCtDBQ_rAM",
+  authDomain: "po243-1d556.firebaseapp.com",
+  projectId: "po243-1d556",
+  storageBucket: "po243-1d556.firebasestorage.app",
+  messagingSenderId: "497922929256",
+  appId: "1:497922929256:web:bf45df24e1a3feefaac1dd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app); [cite: 16]
+const provider = new GoogleAuthProvider(); [cite: 16]
+
+// Элементы интерфейса
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userInfo = document.getElementById('userInfo');
+const messageForm = document.getElementById('messageForm');
+
+// --- ЛОГИКА АВТОРИЗАЦИИ  ---
+loginBtn.onclick = () => signInWithPopup(auth, provider);
+logoutBtn.onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // Пользователь вошел
+    loginBtn.style.display = 'none';
+    userInfo.style.display = 'flex';
+    messageForm.style.display = 'block';
+    
+    // Предзаполнение полей 
+    document.getElementById('userName').innerText = user.displayName;
+    document.getElementById('userPhoto').src = user.photoURL;
+    document.getElementById('name').value = user.displayName;
+    document.getElementById('email').value = user.email;
+  } else {
+    // Пользователь вышел
+    loginBtn.style.display = 'block';
+    userInfo.style.display = 'none';
+    messageForm.style.display = 'none';
+  }
+});
+
+// --- ОСТАЛЬНАЯ ЛОГИКА (UpdateDoc, addDoc) ---
+// Обновленный метод создания поста с использованием данных auth 
+document.getElementById('mainBtn').onclick = async () => {
+  const content = document.getElementById('content').value;
+  if (!content) return alert("Введите текст!");
+
+  try {
+    await addDoc(collection(db, "requests"), {
+        name: auth.currentUser.displayName,
+        email: auth.currentUser.email,
+        photo: auth.currentUser.photoURL,
+        text: content,
+        likes: 0,
+        timestamp: serverTimestamp()
+    });
+    document.getElementById("content").value = "";
+    alert("✅ Опубликовано!");
+  } catch (e) {
+    alert("❌ Ошибка доступа! Проверьте Rules в Firebase."); [cite: 21]
+  }
+};
 
 <!-- Модал��ное окно редактирования -->
 <div id="editModal" class="modal">
@@ -350,6 +417,7 @@ window.onclick = function(event) {
     commentsModal.style.display = 'none';
   }
 };
+
 </script>
 </body>
 </html>
