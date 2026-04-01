@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>ЧТО? - Personalized Cloud</title>
+<title>ЧТО? - Personalized Cloud with Images</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #1C1C1C; display: flex; flex-direction: column; align-items: center; padding: 20px; }
@@ -14,40 +14,34 @@
     .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #1C1C1C; }
     .logout-btn { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
 
-
-   body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; }
-   .upload-card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; width: 300px; text-align: center; }
-   #preview { width: 100%; margin-top: 10px; display: none; border-radius: 4px; }
-   progress { width: 100%; margin: 10px 0; display: none; }
-   .post-image { width: 300px; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     /* Стили контента */
     .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); }
     input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-    button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    
+    /* Стили для загрузки фото */
+    .upload-section { border: 2px dashed #ddd; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: center; }
+    progress { width: 100%; height: 10px; margin-top: 10px; display: none; }
+    #fileBtn { margin-top: 10px; font-size: 12px; }
+
+    button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
     button#mainBtn:disabled { background: #999; }
 
     .post { background: #fff; border: 1px solid #eaeaea; padding: 25px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
     .post-header { display: flex; justify-content: space-between; align-items: flex-start; }
     .author-info { display: flex; align-items: center; gap: 10px; }
+    .post-image { width: 100%; margin-top: 15px; border-radius: 8px; display: block; }
     .post-actions { display: flex; gap: 8px; }
     .icon-btn { cursor: pointer; border: none; background: none; font-size: 18px; padding: 5px; }
-    .like-btn { cursor: pointer; border: none; background: #ffe0e0; padding: 8px 12px; border-radius: 20px; font-size: 14px; color: #900020; font-weight: 600; }
+    .like-btn { cursor: pointer; border: none; background: #ffe0e0; padding: 8px 12px; border-radius: 20px; font-size: 14px; color: #900020; font-weight: 600; margin-top: 10px; }
     .time { font-size: 11px; color: #999; }
     .badge { font-size: 11px; background: #f0f0f0; padding: 3px 8px; border-radius: 12px; color: #666; margin-left: 5px; }
 
-    /* Модалки */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
     .modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
 </style>
 </head>
 <body>
-<div class="upload-card">
-        <h3>Загрузить фото</h3>
-        <input type="file" id="fileBtn" accept="image/*">
-        <progress id="uploader" value="0" max="100">0%</progress>
-        <img id="preview" src="" alt="Preview">
-        <button id="sendBtn" style="margin-top:10px; width:100%;">Опубликовать в Cloud</button>
-    </div>
+
 <div class="auth-container">
     <button id="loginBtn">🔑 Войти через Google</button>
     <div id="userInfo" class="user-bar" style="display: none;">
@@ -64,7 +58,14 @@
   <input type="text" id="name" placeholder="Имя" readonly>
   <input type="email" id="email" placeholder="Email" readonly>
   <textarea id="content" placeholder="Что нового?" rows="3"></textarea>
-  <button id="mainBtn">🚀 Опубликовать</button>
+  
+  <div class="upload-section">
+      <strong>🖼️ Прикрепить фото</strong><br>
+      <input type="file" id="fileBtn" accept="image/*">
+      <progress id="uploader" value="0" max="100"></progress>
+  </div>
+
+  <button id="mainBtn">🚀 Опубликовать в облако</button>
 </div>
 
 <div id="feed"></div>
@@ -83,59 +84,6 @@
 </div>
 
 <script type="module">
-
-    // Авто-вход для тестов (нужен для прав доступа)
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).then(() => console.log("Authorized"));
-
-    const fileBtn = document.getElementById('fileBtn');
-    const uploader = document.getElementById('uploader');
-    const sendBtn = document.getElementById('sendBtn');
-
-    // КЛИК ПО КНОПКЕ ОТПРАВКИ
-    sendBtn.onclick = async () => {
-        const file = fileBtn.files[0];
-        if (!file) return alert("Сначала выбери файл!");
-
-        // 1. Создаем ссылку в Storage (папка images / название файла)
-        const storageRef = ref(storage, 'images/' + file.name);
-        
-        // 2. Начинаем загрузку
-        const uploadTask = uploadBytesResumable(storageRef, file);
-        uploader.style.display = 'block';
-
-        uploadTask.on('state_changed', 
-            (snapshot) => {
-                // Шкала прогресса
-                let percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                uploader.value = percentage;
-            }, 
-            (error) => alert(error.message), 
-            () => {
-                // 3. Когда загрузка завершена, получаем URL
-                getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-                    // 4. Сохраняем ссылку в Firestore
-                    await addDoc(collection(db, "posts"), {
-                        imageUrl: downloadURL,
-                        createdAt: serverTimestamp()
-                    });
-                    uploader.style.display = 'none';
-                    alert("Картинка успешно сохранена в БД!");
-                });
-            }
-        );
-    };
-
-    // ОТОБРАЖЕНИЕ КАРТИНОК ИЗ БАЗЫ
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
-        const list = document.getElementById('imageList');
-        list.innerHTML = "";
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            list.innerHTML += `<img src="${data.imageUrl}" class="post-image">`;
-        });
-    }); 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
@@ -144,6 +92,9 @@ import {
 import { 
   getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { 
+  getStorage, ref, uploadBytesResumable, getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD_8QC9gvQadWPJeooOhUZf_YCtDBQ_rAM",
@@ -158,6 +109,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
 let currentEditingId = null;
@@ -175,7 +127,6 @@ onAuthStateChanged(auth, (user) => {
     loginBtn.style.display = 'none';
     userInfo.style.display = 'flex';
     editorSection.style.display = 'block';
-    
     document.getElementById('userName').innerText = user.displayName;
     document.getElementById('userPhoto').src = user.photoURL;
     document.getElementById('name').value = user.displayName;
@@ -187,33 +138,68 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// === СОЗДАНИЕ ПОСТА ===
+// === СОЗДАНИЕ ПОСТА (С ЛОГИКОЙ КАРТИНКИ) ===
 document.getElementById('mainBtn').onclick = async () => {
   const content = document.getElementById('content').value;
-  if (!content.trim()) return alert("Напишите что-нибудь!");
-
+  const file = document.getElementById('fileBtn').files[0];
   const btn = document.getElementById('mainBtn');
+  const uploader = document.getElementById('uploader');
+
+  if (!content.trim() && !file) return alert("Добавьте текст или фото!");
+
   btn.disabled = true;
+  btn.innerText = "Загрузка...";
 
   try {
+    let finalImageUrl = null;
+
+    // 1. Если файл выбран, загружаем его в Storage
+    if (file) {
+      uploader.style.display = 'block';
+      const storageRef = ref(storage, 'images/' + Date.now() + "_" + file.name);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      // Ждем окончания загрузки через Promise
+      await new Promise((resolve, reject) => {
+          uploadTask.on('state_changed', 
+            (snap) => {
+                uploader.value = (snap.bytesTransferred / snap.totalBytes) * 100;
+            }, 
+            reject, 
+            async () => {
+                finalImageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve();
+            }
+          );
+      });
+    }
+
+    // 2. Сохраняем данные в Firestore
     await addDoc(collection(db, "requests"), {
         name: auth.currentUser.displayName,
         email: auth.currentUser.email,
         photo: auth.currentUser.photoURL,
         content: content,
+        imageUrl: finalImageUrl, // Ссылка на картинку (если есть)
         likes: 0,
         timestamp: serverTimestamp()
     });
+
+    // Очистка
     document.getElementById("content").value = "";
-    alert("✅ Готово!");
+    document.getElementById("fileBtn").value = "";
+    uploader.style.display = 'none';
+    alert("✅ Опубликовано!");
+
   } catch (e) {
     alert("Ошибка: " + e.message);
   } finally {
     btn.disabled = false;
+    btn.innerText = "🚀 Опубликовать в облако";
   }
 };
 
-// === ПОЛУЧЕНИЕ ДАННЫХ (REAL-TIME) ===
+// === ОТОБРАЖЕНИЕ ЛЕНТЫ ===
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
   const feed = document.getElementById('feed');
@@ -231,7 +217,7 @@ onSnapshot(q, (snapshot) => {
             <img src="${data.photo || 'https://via.placeholder.com/40'}" class="user-avatar" style="width:30px; height:30px;">
             <div>
                 <div><b>${data.name}</b>${editedBadge}</div>
-                <span class="time">${data.timestamp?.toDate().toLocaleTimeString() || '...'}</span>
+                <span class="time">${data.timestamp?.toDate().toLocaleString() || '...'}</span>
             </div>
           </div>
           <div class="post-actions">
@@ -241,7 +227,11 @@ onSnapshot(q, (snapshot) => {
             ` : ''}
           </div>
         </div>
+        
         <p style="margin: 15px 0; line-height: 1.5;">${data.content}</p>
+        
+        ${data.imageUrl ? `<img src="${data.imageUrl}" class="post-image">` : ''}
+        
         <button class="like-btn" onclick="processLike('${docSnap.id}')">❤️ ${data.likes || 0}</button>
       </div>
     `;
@@ -250,7 +240,7 @@ onSnapshot(q, (snapshot) => {
 
 // === ФУНКЦИИ УПРАВЛЕНИЯ ===
 window.processLike = async (id) => {
-  if(!auth.currentUser) return alert("Войдите, чтобы ставить лайки!");
+  if(!auth.currentUser) return alert("Войдите для лайков!");
   await updateDoc(doc(db, "requests", id), { likes: increment(1) });
 };
 
