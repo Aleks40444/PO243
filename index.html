@@ -14,6 +14,12 @@
     .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #1C1C1C; }
     .logout-btn { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
 
+
+   body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; }
+   .upload-card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; width: 300px; text-align: center; }
+   #preview { width: 100%; margin-top: 10px; display: none; border-radius: 4px; }
+   progress { width: 100%; margin: 10px 0; display: none; }
+   .post-image { width: 300px; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     /* Стили контента */
     .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); }
     input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -35,7 +41,13 @@
 </style>
 </head>
 <body>
-
+<div class="upload-card">
+        <h3>Загрузить фото</h3>
+        <input type="file" id="fileBtn" accept="image/*">
+        <progress id="uploader" value="0" max="100">0%</progress>
+        <img id="preview" src="" alt="Preview">
+        <button id="sendBtn" style="margin-top:10px; width:100%;">Опубликовать в Cloud</button>
+    </div>
 <div class="auth-container">
     <button id="loginBtn">🔑 Войти через Google</button>
     <div id="userInfo" class="user-bar" style="display: none;">
@@ -71,6 +83,76 @@
 </div>
 
 <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD_8QC9gvQadWPJeooOhUZf_YCtDBQ_rAM",
+        authDomain: "po243-1d556.firebaseapp.com",
+        projectId: "po243-1d556",
+        storageBucket: "po243-1d556.firebasestorage.app",
+        appId: "1:497922929256:web:bf45df24e1a3feefaac1dd"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+
+    // Авто-вход для тестов (нужен для прав доступа)
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).then(() => console.log("Authorized"));
+
+    const fileBtn = document.getElementById('fileBtn');
+    const uploader = document.getElementById('uploader');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // КЛИК ПО КНОПКЕ ОТПРАВКИ
+    sendBtn.onclick = async () => {
+        const file = fileBtn.files[0];
+        if (!file) return alert("Сначала выбери файл!");
+
+        // 1. Создаем ссылку в Storage (папка images / название файла)
+        const storageRef = ref(storage, 'images/' + file.name);
+        
+        // 2. Начинаем загрузку
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        uploader.style.display = 'block';
+
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                // Шкала прогресса
+                let percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                uploader.value = percentage;
+            }, 
+            (error) => alert(error.message), 
+            () => {
+                // 3. Когда загрузка завершена, получаем URL
+                getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+                    // 4. Сохраняем ссылку в Firestore
+                    await addDoc(collection(db, "posts"), {
+                        imageUrl: downloadURL,
+                        createdAt: serverTimestamp()
+                    });
+                    uploader.style.display = 'none';
+                    alert("Картинка успешно сохранена в БД!");
+                });
+            }
+        );
+    };
+
+    // ОТОБРАЖЕНИЕ КАРТИНОК ИЗ БАЗЫ
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+        const list = document.getElementById('imageList');
+        list.innerHTML = "";
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            list.innerHTML += `<img src="${data.imageUrl}" class="post-image">`;
+        });
+    }); 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
