@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>ЧТО? - Full Cloud App</title>
+<title>ЧТО? - Full Cloud App + DM</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #1C1C1C; display: flex; flex-direction: column; align-items: center; padding: 20px; }
@@ -17,8 +17,8 @@
     /* Форма создания */
     .container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 8px 4px 15px rgba(0,0,0,0.05); }
     textarea, input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-family: 'Inter', sans-serif; }
-    button#mainBtn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    button#mainBtn:disabled { background: #999; }
+    button.primary-btn { background: #1C1C1C; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    button:disabled { background: #999 !important; }
 
     /* Посты */
     .post { background: #fff; border: 1px solid #eaeaea; padding: 25px; margin-top: 15px; border-radius: 8px; width: 100%; max-width: 500px; }
@@ -31,9 +31,15 @@
     .time { font-size: 11px; color: #999; }
     .badge { font-size: 11px; background: #f0f0f0; padding: 3px 8px; border-radius: 12px; color: #666; margin-left: 5px; }
 
-    /* Модалка */
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-    .modal-content { background-color: #fff; margin: 10% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
+    /* Модалки */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+    .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; position: relative; }
+    
+    /* Чат DM */
+    #chatHistory { height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .msg { padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px; }
+    .msg.sent { align-self: flex-end; background: #4285F4; color: white; }
+    .msg.received { align-self: flex-start; background: #f1f1f1; color: #333; }
 </style>
 </head>
 <body>
@@ -53,7 +59,7 @@
   <h3>📱 Что нового?</h3>
   <textarea id="content" placeholder="Напишите сообщение..." rows="3"></textarea>
   <input type="text" id="imageUrl" placeholder="Ссылка на картинку (URL)...">
-  <button id="mainBtn">🚀 Опубликовать</button>
+  <button id="mainBtn" class="primary-btn">🚀 Опубликовать</button>
 </div>
 
 <div id="feed"></div>
@@ -64,17 +70,29 @@
     <textarea id="editContent" rows="3"></textarea>
     <input type="text" id="editImageUrl" placeholder="Новая ссылка на фото...">
     <div style="display:flex; gap:10px; margin-top:15px;">
-        <button onclick="saveEdit()" style="flex:1; padding:10px; background:#1C1C1C; color:white; border-radius:6px; border:none;">Сохранить</button>
-        <button onclick="closeEditModal()" style="flex:1; padding:10px; background:#ddd; border-radius:6px; border:none;">Отмена</button>
+        <button onclick="saveEdit()" style="flex:1; padding:10px; background:#1C1C1C; color:white; border-radius:6px; border:none; cursor:pointer;">Сохранить</button>
+        <button onclick="closeEditModal()" style="flex:1; padding:10px; background:#ddd; border-radius:6px; border:none; cursor:pointer;">Отмена</button>
     </div>
   </div>
+</div>
+
+<div id="dmModal" class="modal">
+    <div class="modal-content">
+      <h3 id="dmTitle">Чат с пользователем</h3>
+      <div id="chatHistory"></div>
+      <div style="display: flex; gap: 5px;">
+          <input type="text" id="dmInput" placeholder="Напишите сообщение...">
+          <button id="sendDmBtn" style="padding: 10px; background: #1C1C1C; color:white; border:none; border-radius:6px; cursor:pointer;">Отправить</button>
+      </div>
+      <button onclick="closeDmModal()" style="margin-top:10px; width:100%; padding:8px; background:none; border:none; color:#666; cursor:pointer;">Закрыть</button>
+    </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
-  serverTimestamp, updateDoc, doc, increment, getDoc, deleteDoc  
+  serverTimestamp, updateDoc, doc, increment, getDoc, deleteDoc, where, or, and
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 import { 
   getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
@@ -96,6 +114,8 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let currentEditingId = null;
+let currentChatPartnerEmail = null;
+let dmUnsubscribe = null;
 
 // === ЛОГИКА ВХОДА ===
 document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
@@ -140,15 +160,14 @@ document.getElementById('mainBtn').onclick = async () => {
     });
     document.getElementById("content").value = "";
     document.getElementById("imageUrl").value = "";
-    alert("✅ Опубликовано!");
   } catch (e) {
-    alert("Ошибка доступа! Проверьте Rules в консоли Firebase.");
+    alert("Ошибка доступа!");
   } finally {
     btn.disabled = false;
   }
 };
 
-// === ОТОБРАЖЕНИЕ ЛЕНТЫ (REAL-TIME) ===
+// === ОТОБРАЖЕНИЕ ЛЕНТЫ ===
 const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
   const feed = document.getElementById('feed');
@@ -170,6 +189,7 @@ onSnapshot(q, (snapshot) => {
             </div>
           </div>
           <div class="post-actions">
+            ${!isOwner && auth.currentUser ? `<button class="icon-btn" onclick="openDmModal('${data.email}', '${data.name}')" title="Написать сообщение">✉️</button>` : ''}
             ${isOwner ? `
                 <button class="icon-btn" onclick="openEditModal('${docSnap.id}')">✏️</button>
                 <button class="icon-btn" onclick="deletePost('${docSnap.id}')" style="color:red;">🗑️</button>
@@ -184,7 +204,60 @@ onSnapshot(q, (snapshot) => {
   });
 });
 
-// === ФУНКЦИИ УПРАВЛЕНИЯ (WINDOW ЭКСПОРТ) ===
+// === СИСТЕМА ЛИЧНЫХ СООБЩЕНИЙ (DM) ===
+window.openDmModal = (partnerEmail, partnerName) => {
+    currentChatPartnerEmail = partnerEmail;
+    document.getElementById('dmTitle').innerText = `Чат с ${partnerName}`;
+    document.getElementById('dmModal').style.display = 'block';
+    loadMessages(partnerEmail);
+};
+
+function loadMessages(partnerEmail) {
+    if (dmUnsubscribe) dmUnsubscribe();
+    
+    // Запрос: сообщения где (я отправитель И он получатель) ИЛИ (он отправитель И я получатель)
+    const qDm = query(
+        collection(db, "messages"),
+        orderBy("timestamp", "asc")
+    );
+
+    dmUnsubscribe = onSnapshot(qDm, (snapshot) => {
+        const chatHistory = document.getElementById('chatHistory');
+        chatHistory.innerHTML = "";
+        snapshot.forEach(doc => {
+            const m = doc.data();
+            const myEmail = auth.currentUser.email;
+            
+            // Фильтруем только нашу переписку на стороне клиента (для простоты без сложных индексов)
+            if ((m.from === myEmail && m.to === partnerEmail) || (m.from === partnerEmail && m.to === myEmail)) {
+                const type = m.from === myEmail ? 'sent' : 'received';
+                chatHistory.innerHTML += `<div class="msg ${type}">${m.text}</div>`;
+            }
+        });
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    });
+}
+
+document.getElementById('sendDmBtn').onclick = async () => {
+    const input = document.getElementById('dmInput');
+    const text = input.value.trim();
+    if (!text || !currentChatPartnerEmail) return;
+
+    await addDoc(collection(db, "messages"), {
+        from: auth.currentUser.email,
+        to: currentChatPartnerEmail,
+        text: text,
+        timestamp: serverTimestamp()
+    });
+    input.value = "";
+};
+
+window.closeDmModal = () => {
+    document.getElementById('dmModal').style.display = 'none';
+    if (dmUnsubscribe) dmUnsubscribe();
+};
+
+// === ОСТАЛЬНЫЕ ФУНКЦИИ ===
 window.processLike = async (id) => {
   if(!auth.currentUser) return alert("Войдите для лайков!");
   await updateDoc(doc(db, "requests", id), { likes: increment(1) });
